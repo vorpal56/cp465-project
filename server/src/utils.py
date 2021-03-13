@@ -24,14 +24,19 @@ def create_response(status_code, body):
 	return response
 
 def compile_sample():
-  import pandas
-  # sample 10% of the data (about 5000 articles)
-  portion = 0.1
-  df = pd.read_csv(
-    os.path.join(DATA_PATH, "articles_full.csv"),
-    header=0,
-    skiprows=lambda index: index > 0 and random.random() > portion
-  )
-  df.to_csv(os.path.join(DATA_PATH, "articles.csv"), index=False)
-  print("ok")
-  return
+	import pandas as pd
+	import random
+	# sample 10% of the data (about 5000 articles)
+	portion = 0.1
+	df = pd.read_csv(
+		os.path.join(DATA_PATH, "articles_full.csv"),
+		encoding="utf-8",
+		header=0,
+		skiprows=lambda index: index > 0 and random.random() > portion
+	)
+	df.to_csv(os.path.join(DATA_PATH, "articles_3.csv"), index=False, encoding="utf-8")
+	print("ok")
+	return
+
+if __name__ == "__main__":
+	compile_sample()
