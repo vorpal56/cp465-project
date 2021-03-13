@@ -1,2 +1,6 @@
 flask
+nltk
+numpy
+pandas
 requests
+sklearn

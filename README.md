@@ -3,7 +3,17 @@ You will need [Node.js](https://nodejs.org/en/) to run this project, [npm](https
 1. `git clone https://github.com/vorpal56/cp465-project.git`
 2. `cd cp465-project/`
 3. `npm install -g @angular/cli && npm install`
-4. `python -m venv venv && pip install -r requirements.txt`
+
+It is recommended that you use [virtual environments](https://docs.python.org/3/tutorial/venv.html) which are used to isolate requirements into global and local scopes since there are many different package dependencies for data processing and serving.
+### Windows
+1. `python -m venv venv`
+2. `./venv/Scripts/activate.bat`
+3. `pip install -r requirements.txt`
+
+### Ubuntu/Linux
+1. `python3 -m venv venv`
+2. `source venv/scripts/activate`
+3. `pip install -r requirements.txt`
 
 ## Development Server
 ### Frontend

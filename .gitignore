@@ -1,13 +1,15 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # python
+__pycache__/
 /venv/
 test*.py
-__pycache__/*
 
 # others
 *.zip
 *_full.csv
+*.xlsx
+*.xls
 
 # compiled output
 /dist
