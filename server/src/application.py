@@ -12,7 +12,7 @@ tfidf_model = TfidfModels()
 tfidf_model.load_set_models()
 article_fetcher = ArticleFetcher(tfidf_model)
 
-@application.route("/document", methods=["GET"])
+@application.route("/api/document", methods=["GET"])
 def get_documents():
 	query = request.args.get("q")
 	count = request.args.get("n")

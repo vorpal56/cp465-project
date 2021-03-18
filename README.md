@@ -2,7 +2,11 @@
 You will need [Node.js](https://nodejs.org/en/) to run this project, [npm](https://www.npmjs.com/) (which comes with Node.js during installation), and [Angular 10+](https://angular.io/). To update data, you will need [Python 3](https://docs.python.org/3/) as well.
 1. `git clone https://github.com/vorpal56/cp465-project.git`
 2. `cd cp465-project/`
-3. `npm install -g @angular/cli && npm install`
+3. `npm install -g @angular/cli`
+4. `ng update @angular/core @angular/cli`
+5. `npm install`
+6. `ng add @angular/material`
+
 
 It is recommended that you use [virtual environments](https://docs.python.org/3/tutorial/venv.html) which are used to isolate requirements into global and local scopes since there are many different package dependencies for data processing and serving.
 ### Windows

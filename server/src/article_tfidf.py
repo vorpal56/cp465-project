@@ -96,7 +96,7 @@ def start():
 	from nltk.corpus import stopwords
 	df = read_csv(articles_path, encoding="utf-8", index_col=1)
 	tfidf_vectorizer = TfidfVectorizer(
-		max_df=0.25, # Drop drop that occur more than x% of the time
+		max_df=0.25, # Drop words that occur more than x% of the time
 		min_df=5, # Only use words that appear at least x times
 		stop_words=stopwords.words("english"), # Use the NLTK stopwords
 		lowercase=True,

@@ -7,4 +7,8 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'cp465-db2-project';
+	searchResults: any;
+	setSearchResults(searchResults:any) {
+		this.searchResults = searchResults;
+	}
 }
