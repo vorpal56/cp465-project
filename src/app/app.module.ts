@@ -11,7 +11,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 import { SearchComponent } from './search/search.component';
 import { ResultsComponent } from './results/results.component';
-
+import { MatCardModule} from '@angular/material/card';  
 @NgModule({
   declarations: [
     AppComponent,
@@ -28,7 +28,9 @@ import { ResultsComponent } from './results/results.component';
 		MatButtonModule,
 		MatCheckboxModule,
 		NgSelectModule,
-		BrowserAnimationsModule
+		BrowserAnimationsModule,
+    MatCardModule
+    
   ],
   providers: [],
   bootstrap: [AppComponent]

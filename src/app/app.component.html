@@ -1,2 +1,17 @@
-<search-bar (results)="setSearchResults($event)"></search-bar>
-<search-results [results]="searchResults"></search-results>
+<div class="center">
+<mat-form-field>
+	<mat-label>Search Articles</mat-label>
+	<input matInput type="text" [(ngModel)]="searchText" placeholder="eg. business, donald trump, hillary clinton">
+	<button mat-button *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="searchText=''">
+		<mat-icon>close</mat-icon>
+	</button>
+</mat-form-field>
+<button class="submit" type="submit" (click)="getTopKResults()">Submit</button>
+</div>
+<div class = "centerB">
+<mat-label>Keyword Type: </mat-label>
+<select name="Search By" id="#">
+<option selected="selected" value="one">Content Keyword</option>
+<option value="two">Title Keyword</option>
+</select>
+</div>
