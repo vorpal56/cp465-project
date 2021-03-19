@@ -1,9 +1,16 @@
 .document-card {
     max-width: 500px;
     margin: 5px;
+    display: inline-flex;
     }
         
-    .mat-card-title{
-    font-size:20px;
-    }
+.mat-card-title{
+font-size:20px;
+}
     
+::ng-deep .mat-card{
+
+    border: 5px solid #000;
+    border-radius: 30px !important;
+
+    }
