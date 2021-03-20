@@ -1,15 +1,26 @@
 .center {
     display: flex;
     justify-content: center;
+    //background-color: black;
+    //text
   }
 .centerB {
 display: flex;
 justify-content: center;
-padding: 10px
+padding: 10px;
 }
 .submit{
     width: 70px!important;
-    height: auto!important;
+    height: 20px!important;
+    background-position-y: center;
     min-width: unset!important;
-    
+    margin: 15px 4px;
+
+}
+// ::ng-deep .mat-form-field {
+//     /*change color of label*/
+//     
+//    }
+.selectSearch{
+    margin: 0px 10px;
 }
