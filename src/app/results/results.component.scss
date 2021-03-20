@@ -1,7 +1,6 @@
 .document-card {
     max-width: 500px;
     margin: 5px;
-    display: inline-flex;
     }
         
 .mat-card-title{
@@ -14,3 +13,8 @@ font-size:20px;
     border-radius: 30px !important;
 
     }
+.cardRight{
+    display: inline-flex; /* Title beside article, blocked: Looks Better */
+    //display: inline-table;  //Title at top of article, blocked*/
+    float:right;
+}

@@ -1,8 +1,8 @@
 
 <!--div class="retrieval-time">{{documentRetrievalTime}}</div>
 <div class="accuracy">{{resultAccuracy}}</div-->
-<div class = "cardRet">
 <ng-container *ngFor="let document of searchResults">
+<div class = "cardRight">
 <mat-card class="document-card"> 
     <mat-card-header> 
         <mat-card-title>{{document["title"]}}</mat-card-title> 
@@ -11,5 +11,5 @@
 		{{document["content"]}}
     </mat-card-content> 
 </mat-card> 
-</ng-container>
 </div>
+</ng-container>
