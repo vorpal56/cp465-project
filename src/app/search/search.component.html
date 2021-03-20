@@ -1,17 +1,13 @@
-<div class="center">
-<mat-form-field>
-	<mat-label>Search Articles</mat-label>
-	<input matInput type="text" [(ngModel)]="searchText" placeholder="eg. business, donald trump, hillary clinton">
-	<button mat-button *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="searchText=''">
-		<mat-icon>close</mat-icon>
-	</button>
-</mat-form-field>
-<button class="submit" type="submit" (click)="getTopKResults()">Submit</button>
+<div class="search-grid">
+	<mat-form-field id="search-field">
+		<mat-label>Search Articles</mat-label>
+		<input matInput type="text" [(ngModel)]="searchText" placeholder="eg. business, donald trump, hillary clinton">
+		<button mat-button *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="searchText=''">
+			<mat-icon>close</mat-icon>
+		</button>
+	</mat-form-field>
+	<ng-select id="search-type" [items]="searchTypes" bindLabel="label" bindValue="value" [clearable]="false" placeholder="Search by" [(ngModel)]="searchType">
+	</ng-select>
+	<button mat-stroked-button id="search-button" color="primary" (click)="getTopKResults()">Search</button>
 </div>
-<div class = "centerB">
-<mat-label>Keyword Type: </mat-label>
-<select name="Search By" id="searchBy">
-<option selected="selected" value="content">Content Keyword</option>
-<option value="title">Title Keyword</option>
-</select>
-</div>
+

@@ -12,8 +12,8 @@ export class ResultsComponent implements OnInit {
 
   ngOnInit(): void {
   }
-	print() {
-		console.log(this.searchResults)
+	partialContent(content: string) {
+		return content.slice(0, 50) + "..."
 	}
 
 }

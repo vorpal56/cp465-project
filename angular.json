@@ -29,6 +29,8 @@
               "src/assets"
             ],
             "styles": [
+							"node_modules/@ng-select/ng-select/themes/material.theme.css",
+							"src/ng-select.custom.material.theme.css",
               "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.scss"
             ],

@@ -1,15 +1,113 @@
-.center {
-    display: flex;
-    justify-content: center;
-  }
-.centerB {
-display: flex;
-justify-content: center;
-padding: 10px
+// -------------- Main Body Changes; Affects All Child Components --------------
+.container {
+	width: 100%;
+	margin-right: auto;
+	margin-left: auto;
+	&.core {
+		padding-top: 30px;
+	}
 }
-.submit{
-    width: 70px!important;
-    height: auto!important;
-    min-width: unset!important;
-    
+@media (min-width: 480px) {
+	.container {
+		max-width: 440px;
+	}
 }
+@media (min-width:576px) {
+	.container {
+		max-width: 540px;
+	}
+}
+@media (min-width:768px) {
+	.container {
+		max-width: 720px;
+	}
+}
+@media (min-width:880px) {
+	.container {
+		max-width: 820px;
+	}
+}
+@media (min-width: 992px) {
+	.container {
+		max-width: 920px;
+	}
+}
+@media (min-width: 1200px) {
+	.container {
+		max-width: 1080px;
+	}
+}
+@media (min-width: 1440px) {
+	.container {
+		max-width: 1280px;
+	}
+}
+// -------------- End Main Body Changes --------------
+// -------------- Global Material Changes --------------
+mat-label, input, .mat-checkbox-label {
+	font-family: sans-serif !important;
+}
+mat-form-field {
+	/* if font-size is 16px, line-height is 1.5 */
+	/* line-height: 1.5 !important; */
+	/* if font-size is 15.4px, line-height is 1.65 */
+	line-height: 1.65 !important;
+	width: 100%;
+	/* max-width:180px; */
+}
+@media (max-width: 476px) {
+	mat-form-field {
+		line-height: 2 !important
+	}
+}
+.mat-form-field-subscript-wrapper {
+	margin-top: 2px !important;
+}
+.mat-form-field-infix {
+	width: auto !important;
+}
+.mat-icon.leveler-icon, .mat-icon.info-icon {
+	height: 20px !important;
+	width: 20px !important;
+	font-size: 20px;
+	/* vertical-align: text-top; */
+}
+
+@media(min-width: 768px) {
+	.mat-icon.leveler-icon, .mat-icon.info-icon {
+		height: 18px !important;
+		width: 18px !important;
+		font-size: 18px;
+	}
+}
+@media (min-width: 880px) {
+	.mat-icon.leveler-icon, .mat-icon.info-icon {
+		height: 20px !important;
+		width: 20px !important;
+		font-size: 20px;
+	}
+}
+@media (min-width: 1200px) {
+	.mat-icon.leveler-icon, .mat-icon.info-icon {
+		height: 24px !important;
+		width: 24px !important;
+		font-size: 24px;
+	}
+}
+// -------------- End Material Changes --------------
+// -------------- Component Definitions --------------
+.results-grid {
+	display:grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr;
+	grid-template-areas:
+	"tfidf secondary-index";
+	grid-gap:10px;
+}
+#tfidf {
+	grid-area: tfidf;
+}
+#secondary-index {
+	grid-area: secondary-index;
+}
+// -------------- End Component Definitions --------------

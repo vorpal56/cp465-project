@@ -1,15 +1,18 @@
 
-<!--div class="retrieval-time">{{documentRetrievalTime}}</div>
+<!--div class="retrieval-time">{{articleRetrievalTime}}</div>
 <div class="accuracy">{{resultAccuracy}}</div-->
-<ng-container *ngFor="let document of searchResults">
-<div class = "cardRight">
-<mat-card class="document-card"> 
-    <mat-card-header> 
-        <mat-card-title>{{document["title"]}}</mat-card-title> 
-    </mat-card-header> 
-    <mat-card-content> 
-		{{document["content"]}}
-    </mat-card-content> 
-</mat-card> 
-</div>
-</ng-container>
+<mat-accordion >
+	<ng-container *ngFor="let article of searchResults">
+		<mat-expansion-panel hideToggle>
+			<mat-expansion-panel-header collapsedHeight="65px" expandedHeight="90px">
+				<mat-panel-title>
+					{{article.title}}
+				</mat-panel-title>
+				<mat-panel-description >
+					{{partialContent(article.content)}}
+				</mat-panel-description>
+			</mat-expansion-panel-header>
+			<p>{{article.content}}</p>
+		</mat-expansion-panel>
+	</ng-container>
+</mat-accordion>
