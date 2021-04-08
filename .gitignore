@@ -6,10 +6,12 @@ __pycache__/
 test*.py
 
 # others
+*.pkl
 *.zip
 *_full.csv
 *.xlsx
 *.xls
+archive/
 
 # compiled output
 /dist
