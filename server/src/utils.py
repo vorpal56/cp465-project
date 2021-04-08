@@ -1,8 +1,10 @@
-from flask import make_response
 from string import punctuation
+from functools import wraps
 import os
 import pickle
 import re
+import time
+import json
 
 APP_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -14,8 +16,10 @@ NUM_CLUSTERS = 15 # The number of clusters we want to use -> depends on how larg
 
 punctuation = punctuation + '\n' + '—“,”‘-’' + '0123456789' # punctuation specifically for the article string
 
-def preprocess_string(string):
+def preprocess_string(string, remove_punc=False):
 	string = re.sub('(\S+@\S+)(com|\s+com)', ' ', string) # email address/usernames
+	if remove_punc:
+		string = clean_punctuation(string)
 	string = re.sub('\s{1,}', ' ', string) # extra whitespace
 	string = " ".join([word for word in string.split() if len(word) > 2])
 	return string
@@ -23,20 +27,22 @@ def preprocess_string(string):
 def clean_punctuation(string):
 	return ''.join(word for word in string if word not in punctuation)
 
-def create_response(status_code, body):
-	'''
-	Function that creates a Flask Response with proper headers
-	Params:
-		status_code (int)
-		body (str)
-	Returns:
-		response (flask.Response): Flask Response object with status code and body
-	'''
-	response = make_response()
-	response.status_code = status_code
-	response.data = body
-	response.headers['Access-Control-Allow-Origin']='*'
-	return response
+def time_call(calling_function):
+	@wraps(calling_function)
+	def wrapper(*args, **kwargs):
+		start_time = time.time()
+		results = calling_function(*args, **kwargs)
+		end_time = time.time() - start_time
+		response_obj = create_response(results, end_time)
+		return response_obj
+	return wrapper
+
+def create_response(article_details, end_time):
+	obj = {
+		"time": end_time,
+		"articles": article_details
+	}
+	return json.dumps(obj)
 
 def compile_sample():
 	import pandas as pd
