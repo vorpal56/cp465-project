@@ -11,7 +11,8 @@ import { shareReplay } from 'rxjs/operators';
 export class SearchComponent implements OnInit {
 
   constructor(private http: HttpClient) { }
-	searchText: string = "obamacare";
+	searchText: string = "";
+	searchQuantity: number = 5;
 	tfidfResults$: Observable<any>;
 	secondaryIndexResults$: Observable<any>;
 
@@ -19,21 +20,22 @@ export class SearchComponent implements OnInit {
 		{ 'label': 'Article Content', 'value': 'content' },
 		{ 'label': 'Article Title', 'value': 'title' },
 	];
-	searchType: string;
+	searchType: string = this.searchTypes[0]["value"];
 	@Output("results") searchResultsChange = new EventEmitter<any>();
   getTopKResults() {
-		let queryParams = [`q=${this.searchText}`];
-		if (this.searchType) {
-			queryParams.push(`type=${this.searchType}`);
+		if (this.searchText != "" && this.searchText != undefined && this.searchText != null) {
+			let quantityParam = this.searchQuantity == null ? `n=5` : `n=${this.searchQuantity}`
+			let queryParams = [`q=${this.searchText}`, `t=${this.searchType}`, quantityParam];
+			let queryString = queryParams.join("&");
+			this.getTopKTfidf(queryString);
+			this.getTopKSecondaryIndex(queryString);
+			// Emit observables and subscribe on the results component using async pipe
+			let allSearchResults = {
+				"tfidf": this.tfidfResults$,
+				"secondary_index": this.secondaryIndexResults$
+			}
+			this.searchResultsChange.emit(allSearchResults)
 		}
-		let queryString = queryParams.join("&");
-		this.getTopKTfidf(queryString);
-		this.getTopKSecondaryIndex(queryString);
-		let allSearchResults = {
-			"tfidf": this.tfidfResults$,
-			"secondary_index": this.secondaryIndexResults$
-		}
-		this.searchResultsChange.emit(allSearchResults)
 		return
 	}
 	getTopKTfidf(queryString: string) {

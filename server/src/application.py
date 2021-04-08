@@ -4,7 +4,7 @@ from article_processing import ArticleFetcher, RetrievalModels
 import json
 
 application = Flask(__name__)
-application.secret_key = "doesntMatter"
+application.secret_key = "doesntMatter" # Doesn't matter since we're not deploying it live
 application.jinja_env.trim_blocks = True
 application.jinja_env.lstrip_blocks = True
 
@@ -15,22 +15,21 @@ article_fetcher = ArticleFetcher(retrieval_models)
 @application.route("/api/documents-tfidf", methods=["GET"])
 def get_tfidf_documents():
 	query = request.args.get("q")
-	count = request.args.get("n")
-	query_type = request.args.get("type")
-	if count is not None:
-		article_objects = article_fetcher.search_top_k_tfidf(query, top_k=int(count))
+	quantity = request.args.get("n")
+	query_type = request.args.get("t")
+	if quantity is not None:
+		article_objects = article_fetcher.search_top_k_tfidf(query, top_k=int(quantity))
 	else:
 		article_objects = article_fetcher.search_top_k_tfidf(query)
 	return json.dumps(article_objects)
 
-
 @application.route("/api/documents-si", methods=["GET"])
 def get_secondary_index_documents():
 	query = request.args.get("q")
-	count = request.args.get("n")
-	query_type = request.args.get("type")
-	if count is not None:
-		article_objects = article_fetcher.search_top_k_secondary_index(query, top_k=int(count))
+	quantity = request.args.get("n")
+	query_type = request.args.get("t")
+	if quantity is not None:
+		article_objects = article_fetcher.search_top_k_secondary_index(query, top_k=int(quantity))
 	else:
 		article_objects = article_fetcher.search_top_k_secondary_index(query)
 	return json.dumps(article_objects)

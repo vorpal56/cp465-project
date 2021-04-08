@@ -7,17 +7,21 @@
 }
 .search-grid {
 	display:grid;
-	grid-template-columns: 2fr 1fr 100px;
-	grid-template-rows: 2fr;
+	grid-template-columns: 2fr 1fr 0.5fr 80px;
+	grid-template-rows: 1fr;
 	grid-template-areas:
-	"search-field search-type search-button";
+	"search-field search-type search-quantity search-button";
 	grid-gap:10px;
+}
+#search-quantity {
+	grid-area: search-quantity;
 }
 #search-field {
 	grid-area: search-field;
 }
 #search-type {
 	grid-area: search-type;
+	min-width: 111px;
 }
 #search-button {
 	grid-area: search-button;
