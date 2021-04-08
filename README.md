@@ -26,17 +26,19 @@ It is recommended that you use [virtual environments](https://docs.python.org/3/
 npm run serve
 ```
 ### Backend
-The backend requires 4 models in the [`server/data/models/`](server/data/models/) folder: 
+The backend requires 7 models in the [`server/data/models/`](server/data/models/) folder: 
 1. `dataframe.pkl` - DataFrame that holds the article details from a given article path
-2. `document_term_matrix.pkl` - The document term matrix fitted by the `tfidf_vectorizer.pkl` along all articles contents from the dataframe
-3. `kmeans_model.pkl` - The KMeans model fitted by the `document_term_matrix.pkl`
-4. `tfidf_vectorizer.pkl` - The TfidfVectorizer class with tuned parameters
+2. `content_tfidf_vectorizer.pkl` - The TfidfVectorizer class with tuned parameters for article contents
+3. `content_document_term_matrix.pkl` - The document term matrix fitted by the `content_tfidf_vectorizer` along all articles contents from the dataframe
+4. `content_kmeans_model.pkl` - The KMeans model fitted by the `content_document_term_matrix`
+5. `generic_tfidf_vectorizer.pkl` - The TfidfVectorizer class with generic parameters for article titles
+6. `title_document_term_matrix.pkl` - The document term matrix fitted by the `generic_tfidif_vectorizer` along all articles titles from the dataframe
+7. `title_kmeans_model.pkl` - The KMeans model fitted by the `title_document_term_matrix`
 
-Since GitHub has a limit on the size of files and the number of articles we're using is large, we can't publish it here. You can create the models using the following commands after you've installed all the Python requirements:
-1. `cd server/` 
-2. `python src/article_processing.py`
+Since GitHub has a limit on the size of files and the number of articles we're using is large, we can't publish it here. You can create the models using `python server/src/article_processing.py` after you've installed all the Python requirements.
 
 Served on port `5000`, routed in `proxy.json` as `/api` to port `4200`, the default port for Angular applications. 
 ```
-npm run py-dev
+cd server/
+python src/application.py
 ```
