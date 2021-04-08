@@ -10,7 +10,8 @@ import { MatInputModule } from "@angular/material/input";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCheckboxModule } from "@angular/material/checkbox";
-import {MatExpansionModule} from '@angular/material/expansion';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AppComponent } from './app.component';
 import { SearchComponent } from './search/search.component';
@@ -34,8 +35,8 @@ import { MatCardModule} from '@angular/material/card';
 		NgSelectModule,
 		BrowserAnimationsModule,
     MatCardModule,
-		MatExpansionModule
-
+		MatExpansionModule,
+		MatProgressSpinnerModule
   ],
   providers: [],
   bootstrap: [AppComponent]

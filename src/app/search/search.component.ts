@@ -11,33 +11,42 @@ import { shareReplay } from 'rxjs/operators';
 export class SearchComponent implements OnInit {
 
   constructor(private http: HttpClient) { }
-	searchText: string = "";
-	searchResults: any[] = [];
-	items$: Observable<any>;
+	searchText: string = "obamacare";
+	tfidfResults$: Observable<any>;
+	secondaryIndexResults$: Observable<any>;
 
 	searchTypes: object[] = [
-		// { 'label': 'Both', 'value': '' },
 		{ 'label': 'Article Content', 'value': 'content' },
 		{ 'label': 'Article Title', 'value': 'title' },
-	]
+	];
 	searchType: string;
 	@Output("results") searchResultsChange = new EventEmitter<any>();
   getTopKResults() {
-		this.searchResults = []
-		let queryParams = [`q=${this.searchText}`]
+		let queryParams = [`q=${this.searchText}`];
 		if (this.searchType) {
-			queryParams.push(`type=${this.searchType}`)
+			queryParams.push(`type=${this.searchType}`);
 		}
-		let queryString = queryParams.join("&")
-		this.items$ = this.http.get<any>(`http://localhost:4200/api/document?${queryString}`).pipe(
+		let queryString = queryParams.join("&");
+		this.getTopKTfidf(queryString);
+		this.getTopKSecondaryIndex(queryString);
+		let allSearchResults = {
+			"tfidf": this.tfidfResults$,
+			"secondary_index": this.secondaryIndexResults$
+		}
+		this.searchResultsChange.emit(allSearchResults)
+		return
+	}
+	getTopKTfidf(queryString: string) {
+		this.tfidfResults$ = this.http.get<any>(`http://localhost:4200/api/documents-tfidf?${queryString}`).pipe(
+			shareReplay({refCount: true, bufferSize:1})
+		);
+		return;
+	}
+	getTopKSecondaryIndex(queryString: string) {
+		this.secondaryIndexResults$ = this.http.get<any>(`http://localhost:4200/api/documents-si?${queryString}`).pipe(
 			shareReplay({refCount: true, bufferSize:1})
 		)
-		this.items$.subscribe((results: any[]) => {
-			results.forEach((result: any) => {
-				this.searchResults.push(result);
-			})
-		})
-		this.searchResultsChange.emit(this.searchResults)
+		return;
 	}
 	ngOnInit(): void {
 

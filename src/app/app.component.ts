@@ -1,14 +1,15 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-root',
+  selector: 'article-search-engine',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'cp465-db2-project';
-	searchResults: any;
-	setSearchResults(searchResults:any) {
-		this.searchResults = searchResults;
+	tfidfResults: any[];
+	secondaryIndexResults: any[];
+	setSearchResults(allSearchResults: any) {
+		this.tfidfResults = allSearchResults["tfidf"];
+		this.secondaryIndexResults = allSearchResults["secondary_index"];
 	}
 }

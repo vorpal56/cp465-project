@@ -1,13 +1,13 @@
 <div class="container core">
 	<search-bar (results)="setSearchResults($event)"></search-bar>
-	<div class="results-grid">
-		<div id="tfidf">
-			<h2 *ngIf="searchResults">TF-IDF Method</h2>
-			<search-results [results]="searchResults"></search-results>
+	<div class="results-flex">
+		<div id="tfidf" class="results">
+			<h2>TF-IDF Method</h2>
+			<search-results [results]="tfidfResults"></search-results>
 		</div>
-		<div id="secondary-index">
-			<h2 *ngIf="searchResults">Secondary Index Method</h2>
-			<search-results [results]="searchResults"></search-results>
+		<div id="secondary-index" class="results">
+			<h2>Secondary Index Method</h2>
+			<search-results [results]="secondaryIndexResults"></search-results>
 		</div>
 	</div>
 </div>

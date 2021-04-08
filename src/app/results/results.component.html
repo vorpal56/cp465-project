@@ -1,18 +1,25 @@
 
 <!--div class="retrieval-time">{{articleRetrievalTime}}</div>
 <div class="accuracy">{{resultAccuracy}}</div-->
-<mat-accordion >
-	<ng-container *ngFor="let article of searchResults">
-		<mat-expansion-panel hideToggle>
-			<mat-expansion-panel-header collapsedHeight="65px" expandedHeight="90px">
-				<mat-panel-title>
-					{{article.title}}
-				</mat-panel-title>
-				<mat-panel-description >
-					{{partialContent(article.content)}}
-				</mat-panel-description>
-			</mat-expansion-panel-header>
-			<p>{{article.content}}</p>
-		</mat-expansion-panel>
-	</ng-container>
-</mat-accordion>
+<ng-container *ngIf="searchResults$ != undefined">
+	<div *ngIf="(searchResults$ | async) as articles else loading">
+		<mat-accordion>
+			<ng-container *ngFor="let article of articles">
+				<mat-expansion-panel hideToggle>
+					<mat-expansion-panel-header collapsedHeight="85px" expandedHeight="95px">
+						<mat-panel-title>
+							{{article.title}}
+						</mat-panel-title>
+						<mat-panel-description >
+							{{partialContent(article.content)}}
+						</mat-panel-description>
+					</mat-expansion-panel-header>
+					<p>{{article.content}}</p>
+				</mat-expansion-panel>
+			</ng-container>
+		</mat-accordion>
+	</div>
+</ng-container>
+	<ng-template #loading>
+	<mat-progress-spinner class="spinner" [mode]="'indeterminate'"></mat-progress-spinner>
+</ng-template>

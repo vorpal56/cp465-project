@@ -4,3 +4,22 @@ html, body { height: 100%;}
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif;}
 input {font: 400 14px Roboto !important}
 button { height:42px; }
+.center-horizontal {
+	margin-left:auto;
+	margin-right:auto;
+}
+.center-vertical {
+	margin-top: auto;
+	margin-bottom: auto;
+}
+.display-flex {
+	display: flex;
+}
+
+.mat-expansion-panel-header-title, .mat-expansion-panel-header-description {
+	margin-right: 8px !important;
+}
+
+.mat-expansion-panel-header {
+	padding: 0 12px !important;
+}

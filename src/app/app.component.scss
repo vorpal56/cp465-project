@@ -104,6 +104,29 @@ mat-form-field {
 	"tfidf secondary-index";
 	grid-gap:10px;
 }
+.results-flex {
+	display: flex;
+	flex-direction: row;
+}
+.results {
+	margin: 0 5px;
+	width: 100%;
+}
+@media (max-width: 880px) {
+	.results-grid {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr 1fr;
+		grid-template-areas:
+		"tfidf"
+		"secondary-index";
+	}
+	.results-flex {
+		flex-direction: column;
+	}
+	.results {
+		margin: 5px 0;
+	}
+}
 #tfidf {
 	grid-area: tfidf;
 }
