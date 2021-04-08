@@ -26,7 +26,7 @@ It is recommended that you use [virtual environments](https://docs.python.org/3/
 npm run serve
 ```
 ### Backend
-The backend requires 4 models in the [`models/`](models/) folder: 
+The backend requires 4 models in the [`server/data/models/`](server/data/models/) folder: 
 1. `dataframe.pkl` - DataFrame that holds the article details from a given article path
 2. `document_term_matrix.pkl` - The document term matrix fitted by the `tfidf_vectorizer.pkl` along all articles contents from the dataframe
 3. `kmeans_model.pkl` - The KMeans model fitted by the `document_term_matrix.pkl`
