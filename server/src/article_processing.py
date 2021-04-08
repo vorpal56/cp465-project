@@ -6,63 +6,89 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans, MiniBatchKMeans
 from numpy import argsort,array, dot, transpose, where
 from pandas import read_csv, isnull
-from itertools import permutations
 
 ARTICLES_PATH = os.path.join(DATA_PATH, "articles_full.csv")
-
 DATAFRAME_PATH = os.path.join(MODELS_PATH, "dataframe.pkl")
-TFIDF_VECTORIZER_PATH = os.path.join(MODELS_PATH, "tfidf_vectorizer.pkl")
-DOCUMENT_TERM_MATRIX_PATH = os.path.join(MODELS_PATH, "document_term_matrix.pkl")
-KMEANS_MODEL_PATH = os.path.join(MODELS_PATH, "kmeans_model.pkl")
+#------------------------------------------------------------------------------------------------
+CONTENT_TFIDF_VECTORIZER_PATH = os.path.join(MODELS_PATH, "content_tfidf_vectorizer.pkl")
+GENERIC_TFIDF_VECTORIZER_PATH = os.path.join(MODELS_PATH, "generic_tfidf_vectorizer.pkl")
+
+CONTENT_DOCUMENT_TERM_MATRIX_PATH = os.path.join(MODELS_PATH, "content_document_term_matrix.pkl")
+TITLE_DOCUMENT_TERM_MATRIX_PATH = os.path.join(MODELS_PATH, "title_document_term_matrix.pkl")
+
+CONTENT_KMEANS_MODEL_PATH = os.path.join(MODELS_PATH, "content_kmeans_model.pkl")
+TITLE_KMEANS_MODEL_PATH = os.path.join(MODELS_PATH, "title_kmeans_model.pkl")
 
 class RetrievalModels:
 	MAX_N_CLUSTER_TERMS = 20 # The higher the number, the higher the probability that the same terms will appear in multiple clusters
+
 	def __init__(self):
 		return
 
 	def save_models(self):
 		pickle.dump(self.dataframe, open(DATAFRAME_PATH, "wb"))
-		pickle.dump(self.tfidf_vectorizer, open(TFIDF_VECTORIZER_PATH, "wb"))
-		pickle.dump(self.document_term_matrix, open(DOCUMENT_TERM_MATRIX_PATH, "wb"))
-		pickle.dump(self.kmeans_model, open(KMEANS_MODEL_PATH, "wb"))
+		pickle.dump(self.content_tfidf_vectorizer, open(CONTENT_TFIDF_VECTORIZER_PATH, "wb"))
+		pickle.dump(self.generic_tfidf_vectorizer, open(GENERIC_TFIDF_VECTORIZER_PATH, "wb"))
+		pickle.dump(self.content_document_term_matrix, open(CONTENT_DOCUMENT_TERM_MATRIX_PATH, "wb"))
+		pickle.dump(self.title_document_term_matrix, open(TITLE_DOCUMENT_TERM_MATRIX_PATH, "wb"))
+		pickle.dump(self.content_kmeans_model, open(CONTENT_KMEANS_MODEL_PATH, "wb"))
+		pickle.dump(self.title_kmeans_model, open(TITLE_KMEANS_MODEL_PATH, "wb"))
 		return
 
 	def load_models(self):
 		try:
 			dataframe = pickle.load(open(DATAFRAME_PATH, "rb"))
-			tfidf_vectorizer = pickle.load(open(TFIDF_VECTORIZER_PATH, "rb"))
-			document_term_matrix = pickle.load(open(DOCUMENT_TERM_MATRIX_PATH, "rb"))
-			kmeans_model = pickle.load(open(KMEANS_MODEL_PATH, "rb"))
-			return dataframe, tfidf_vectorizer, document_term_matrix, kmeans_model
+			content_tfidf_vectorizer = pickle.load(open(CONTENT_TFIDF_VECTORIZER_PATH, "rb"))
+			generic_tfidf_vectorizer = pickle.load(open(GENERIC_TFIDF_VECTORIZER_PATH, "rb"))
+			content_document_term_matrix = pickle.load(open(CONTENT_DOCUMENT_TERM_MATRIX_PATH, "rb"))
+			title_document_term_matrix = pickle.load(open(TITLE_DOCUMENT_TERM_MATRIX_PATH, "rb"))
+			content_kmeans_model = pickle.load(open(CONTENT_KMEANS_MODEL_PATH, "rb"))
+			title_kmeans_model = pickle.load(open(TITLE_KMEANS_MODEL_PATH, "rb"))
+
+			vectorizers = (content_tfidf_vectorizer, generic_tfidf_vectorizer)
+			matrices = (content_document_term_matrix, title_document_term_matrix)
+			kmeans_models = (content_kmeans_model, title_kmeans_model)
+
+			return dataframe, vectorizers, matrices, kmeans_models
 		except:
 			print("No existing models to load. Run the article_processing.py script")
-			return None, None, None, None
+			return None, (None, None), (None, None), (None, None)
 
-	def set_models(self, dataframe, tfidf_vectorizer, document_term_matrix, kmeans_model):
+	def set_models(self, dataframe, tfidf_vectorizers, document_term_matrices, kmeans_models):
 		self.dataframe = dataframe
-		self.tfidf_vectorizer = tfidf_vectorizer
-		self.document_term_matrix = document_term_matrix
-		self.kmeans_model = kmeans_model
+		self.content_tfidf_vectorizer = tfidf_vectorizers[0]
+		self.generic_tfidf_vectorizer = tfidf_vectorizers[1]
+		self.content_document_term_matrix = document_term_matrices[0]
+		self.title_document_term_matrix = document_term_matrices[1]
+		self.content_kmeans_model = kmeans_models[0]
+		self.title_kmeans_model = kmeans_models[1]
 		return
 
 	def load_set_models(self):
-		dataframe, tfidf_vectorizer, document_term_matrix, kmeans_model = self.load_models()
-		self.set_models(dataframe, tfidf_vectorizer, document_term_matrix, kmeans_model)
+		dataframe, tfidf_vectorizers, document_term_matrices, kmeans_models = self.load_models()
+		self.set_models(dataframe, tfidf_vectorizers, document_term_matrices, kmeans_models)
 		return
+
+	def get_models(self, query_type="content"):
+		if query_type == "title":
+			return self.generic_tfidf_vectorizer, self.title_document_term_matrix, self.title_kmeans_model
+		return self.content_tfidf_vectorizer, self.content_document_term_matrix, self.content_kmeans_model
 
 class ArticleFetcher():
 	def __init__(self, retrieval_models):
 		self.retrieval_models = retrieval_models
-		word_lists, self.secondary_index = self.get_top_n_cluster_terms()
-		cluster_terms = {i: words for i, words in enumerate(word_lists)}
+		word_lists, self.content_secondary_index = self.get_top_n_cluster_terms()
+		content_cluster_terms = {i: words for i, words in enumerate(word_lists)}
+		word_lists, self.title_secondary_index = self.get_top_n_cluster_terms(query_type="title")
+		title_cluster_terms = {i: words for i, words in enumerate(word_lists)}
 		return
 
-	def search_top_k_tfidf(self, query, top_k=5, tfidf_vectorizer=None, document_term_matrix=None, subdf=None):
+	def search_top_k_tfidf(self, query, query_type="content", top_k=5, tfidf_vectorizer=None, document_term_matrix=None, subdf=None):
 		"""
 		Search for the top k documents using TF-IDF using either a subset of articles or the entire corpus of articles
 
 		Args:
-				query (str): The query string searched
+				query (str): The query string searched.
 				top_k (int, optional): Top k documents that should be returned. Defaults to 5.
 				tfidf_vectorizer (TfidfVectorizer, optional): A TfidfVectorizer with different params than retrieval_models. Defaults to None.
 				document_term_matrix (matrix, optional): A document term matrix with different weights than retrieval_models. Defaults to None.
@@ -70,21 +96,20 @@ class ArticleFetcher():
 		Returns:
 				list(dict): Article details sorted by most similar to least similar.
 		"""
-		query = clean_punctuation(preprocess_string(query))
-		if tfidf_vectorizer is not None:
+		query = preprocess_string(query, remove_punc=True)
+		if tfidf_vectorizer is not None and document_term_matrix is not None:
 			transform_query = tfidf_vectorizer.transform([query])
-		else:
-			transform_query = self.retrieval_models.tfidf_vectorizer.transform([query]) # Transform the query to maintain consistency (eg. use nltk stopwords, lowercase, etc.)
-		if document_term_matrix is not None:
 			similarities = dot(transform_query, transpose(document_term_matrix))
 		else:
-			similarities = dot(transform_query, transpose(self.retrieval_models.document_term_matrix))
+			vectorizer, dtm, _ = self.retrieval_models.get_models(query_type)
+			transform_query = vectorizer.transform([query]) # Transform the query to maintain consistency (eg. use nltk stopwords, lowercase, etc.)
+			similarities = dot(transform_query, transpose(dtm))
 		x = array(similarities.toarray()[0]) # secondary_index of similarities as np array
 		article_ids = argsort(x)[-top_k:][::-1] # most similar at the end -> get the last top_k using [-top_k] -> reverse the order using [::-1]
 		article_details = self.get_article_details(article_ids, subdf=subdf)
 		return article_details
 
-	def search_top_k_secondary_index(self, query, top_k=5):
+	def search_top_k_secondary_index(self, query, query_type="content", top_k=5):
 		"""Search for the top k documents using the secondary index (which points to a list of cluster indexes which then point to a subset of articles) and TF-IDF on the subset of articles
 
 		Args:
@@ -94,28 +119,32 @@ class ArticleFetcher():
 		Returns:
 				list(dict): Article details sorted by most similar to least similar.
 		"""
-		query = clean_punctuation(preprocess_string(query))
-		cluster_indexes = self.secondary_index.get(query)
-		transform_query = self.retrieval_models.tfidf_vectorizer.transform([query])
-		# print(transform_query)
+		query = preprocess_string(query, remove_punc=True)
+		secondary_index = self.title_secondary_index if query_type == "title" else self.content_secondary_index
+		cluster_indexes = secondary_index.get(query)
+		vectorizer, _, kmeans_model = self.retrieval_models.get_models(query_type)
 		if cluster_indexes is None:
-			cluster_indexes = self.retrieval_models.kmeans_model.predict(transform_query).tolist()
+			transform_query = vectorizer.transform([query])
+			cluster_indexes = kmeans_model.predict(transform_query).tolist()
 		if len(cluster_indexes) == 1:
-			article_ids = where(self.retrieval_models.kmeans_model.labels_ == cluster_indexes[0])[0].tolist()
+			article_ids = where(kmeans_model.labels_ == cluster_indexes[0])[0].tolist()
 		else:
 			article_ids = set() # the order of documents is not significant in sets which is why the order can be a bit different. the order for the purpose of evaluating similarities is not relevant
 			for cluster_index in cluster_indexes:
-				cluster_article_ids = where(self.retrieval_models.kmeans_model.labels_ == cluster_index)[0].tolist()
+				cluster_article_ids = where(kmeans_model.labels_ == cluster_index)[0].tolist()
 				article_ids.update(cluster_article_ids)
 		# problem is the articles are ordered based on when they're inserted, so we'll use TF-IDF again, but with subset of articles that are clustered based on the labels
 		subdf = self.retrieval_models.dataframe.iloc[list(article_ids)]
-		tfidf_vectorizer = TfidfVectorizer(
+		# Use a generic TF-IDF vectorizer which doesn't have any limiters
+		column_label = "cleaned_title" if query_type == "title" else "cleaned_content"
+		generic_tfidf_vectorizer = TfidfVectorizer(
 			stop_words=nltk.corpus.stopwords.words("english"), # Use the NLTKs stopwords
 			lowercase=True, use_idf=True, smooth_idf=True
-		) # Use a generic TF-IDF vectorizer which doesn't have any limiters
-		document_term_matrix = create_document_term_matrix(tfidf_vectorizer, subdf["cleaned"])
-		# search using the same search_top_k_tfidf function
-		article_details = self.search_top_k_tfidf(query, top_k, tfidf_vectorizer, document_term_matrix, subdf)
+		)
+		# having to recreate the document term matrix every time makes the secondary index much slower since we still need rank based on the subset of articles
+		document_term_matrix = create_document_term_matrix(generic_tfidf_vectorizer, subdf[column_label])
+		# search using the same search_top_k_tfidf method
+		article_details = self.search_top_k_tfidf(query, query_type, top_k, generic_tfidf_vectorizer, document_term_matrix, subdf)
 		return article_details
 
 	def get_article_details(self, article_ids, subdf=None):
@@ -142,10 +171,10 @@ class ArticleFetcher():
 			relevant_article_details.append(response_object)
 		return relevant_article_details
 
-	def get_top_n_cluster_terms(self, n=10):
-		n = max(n, RetrievalModels.MAX_N_CLUSTER_TERMS)
-		terms = self.retrieval_models.tfidf_vectorizer.get_feature_names()
-		centers = self.retrieval_models.kmeans_model.cluster_centers_.argsort()[:, ::-1]
+	def get_top_n_cluster_terms(self, query_type="content", n=10):
+		vectorizer, _, kmeans_model = self.retrieval_models.get_models(query_type)
+		terms = vectorizer.get_feature_names()
+		centers = kmeans_model.cluster_centers_.argsort()[:, ::-1]
 		word_lists = [[terms[j] for j in centers[i, :n]] for i in range(NUM_CLUSTERS)] # get the closest n terms to the center of each cluster
 		secondary_index = {}
 		# The idea is that the "secondary index" has the words which points to a cluster index which points to a subset of articles
@@ -177,7 +206,7 @@ def start():
 	# Fresh start, read the articles, create the document term matrix, and dump the models for future use
 	# Can call start() in if__name__ == "__main__"
 	nltk.download("stopwords")
-	tfidf_vectorizer = TfidfVectorizer(
+	content_tfidf_vectorizer = TfidfVectorizer(
 		max_df=0.25, # Drop words that occur in more than x% of documents -> kind of like stopwords
 		min_df=5, # Drop words that occur in less than x documents -> really rare words along a large corpus doesn't help. Try to use a number proportional to the number of documents used for the models
 		stop_words=nltk.corpus.stopwords.words("english"), # Use the NLTKs stopwords
@@ -186,19 +215,35 @@ def start():
 		smooth_idf=True,
 		# ngram_range=(1, 2) # (x, y): vectorization can consist of x to y words (eg. software engineering = [software, engineering] or software engineering)
 	)
+	generic_tfidf_vectorizer = TfidfVectorizer(
+		stop_words=nltk.corpus.stopwords.words("english"), # Use the NLTKs stopwords
+		lowercase=True, use_idf=True, smooth_idf=True
+	)
 	df = create_df()
+
 	print("Preprocessing article features...")
 	df["content"] = df["content"].apply(preprocess_string)
-	df["cleaned"] = df["content"].apply(clean_punctuation) # Save computation time by creating a new column with the cleaned data
-	print("Creating document term matrix...")
-	document_term_matrix = create_document_term_matrix(tfidf_vectorizer, df["cleaned"])
-	print("Fitting document term matrix to KMeans...")
-	kmeans_model = MiniBatchKMeans(n_clusters=NUM_CLUSTERS)
-	kmeans_model.fit(document_term_matrix)
+	df["cleaned_content"] = df["content"].apply(clean_punctuation) # Save computation time at the expense of memory by creating a new column with the cleaned data
+	df["cleaned_title"] = df["title"].apply(lambda title: preprocess_string(title, remove_punc=True))
+
+	print("Creating document term matrices...")
+	content_document_term_matrix = create_document_term_matrix(content_tfidf_vectorizer, df["cleaned_content"])
+	title_document_term_matrix = create_document_term_matrix(generic_tfidf_vectorizer, df["cleaned_title"])
+
+	print("Fitting document term matrices to KMeans...")
+	content_kmeans_model = MiniBatchKMeans(n_clusters=NUM_CLUSTERS)
+	content_kmeans_model.fit(content_document_term_matrix)
+	title_kmeans_model = MiniBatchKMeans(n_clusters=NUM_CLUSTERS)
+	title_kmeans_model.fit(title_document_term_matrix)
 	retrieval_models = RetrievalModels()
+
 	print("Setting and saving models...")
-	retrieval_models.set_models(df, tfidf_vectorizer, document_term_matrix, kmeans_model)
+	vectorizers = (content_tfidf_vectorizer, generic_tfidf_vectorizer)
+	matrices = (content_document_term_matrix, title_document_term_matrix)
+	kmeans_models = (content_kmeans_model, title_kmeans_model)
+	retrieval_models.set_models(df, vectorizers, matrices, kmeans_models)
 	retrieval_models.save_models()
+
 	print("Finished")
 	return
 
