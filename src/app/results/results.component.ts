@@ -16,4 +16,7 @@ export class ResultsComponent implements OnInit {
 	partialContent(content: string) {
 		return content.slice(0, 50) + "..."
 	}
+	retrievalString(time: number) {
+		return `Retrieval time: ${time}s`
+	}
 }

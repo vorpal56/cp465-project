@@ -1,10 +1,8 @@
-
-<!--div class="retrieval-time">{{articleRetrievalTime}}</div>
-<div class="accuracy">{{resultAccuracy}}</div-->
 <ng-container *ngIf="searchResults$ != undefined">
-	<div *ngIf="(searchResults$ | async) as articles else loading">
+	<div *ngIf="(searchResults$ | async) as articlesResponse else loading">
+		<div class="retrieval-time">{{retrievalString(articlesResponse?.time | number:'1.0-4')}}</div>
 		<mat-accordion>
-			<ng-container *ngFor="let article of articles">
+			<ng-container *ngFor="let article of articlesResponse?.articles">
 				<mat-expansion-panel hideToggle>
 					<mat-expansion-panel-header collapsedHeight="85px" expandedHeight="95px">
 						<mat-panel-title>
