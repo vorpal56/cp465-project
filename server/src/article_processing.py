@@ -77,10 +77,10 @@ class RetrievalModels:
 class ArticleFetcher():
 	def __init__(self, retrieval_models):
 		self.retrieval_models = retrieval_models
-		word_lists, self.content_secondary_index = self.get_top_n_cluster_terms()
-		content_cluster_terms = {i: words for i, words in enumerate(word_lists)}
-		word_lists, self.title_secondary_index = self.get_top_n_cluster_terms(query_type="title")
-		title_cluster_terms = {i: words for i, words in enumerate(word_lists)}
+		bags_of_words, self.content_secondary_index = self.get_top_n_cluster_terms()
+		content_cluster_terms = {i: words for i, words in enumerate(bags_of_words)}
+		bags_of_words, self.title_secondary_index = self.get_top_n_cluster_terms(query_type="title")
+		title_cluster_terms = {i: words for i, words in enumerate(bags_of_words)}
 		return
 
 	def search_top_k_tfidf(self, query, query_type="content", top_k=5, tfidf_vectorizer=None, document_term_matrix=None, subdf=None):
@@ -94,20 +94,36 @@ class ArticleFetcher():
 				document_term_matrix (matrix, optional): A document term matrix with different weights than retrieval_models. Defaults to None.
 				subdf (DataFrame, optional): The subset dataframe if any. Defaults to None.
 		Returns:
-				list(dict): Article details sorted by most similar to least similar.
+				dict:
+					articles (list(dict)): Article details sorted by most similar to least similar.
+					total_documents_size (int): Total number of documents searched
+					nonmatching_documents_size (int): Total number of documents that are not matched to the query at all
 		"""
 		query = preprocess_string(query, remove_punc=True)
-		if tfidf_vectorizer is not None and document_term_matrix is not None:
-			transform_query = tfidf_vectorizer.transform([query])
-			similarities = dot(transform_query, transpose(document_term_matrix))
+		if query != "":
+			if tfidf_vectorizer is not None and document_term_matrix is not None:
+				transform_query = tfidf_vectorizer.transform([query])
+				similarities = dot(transform_query, transpose(document_term_matrix))
+			else:
+				vectorizer, dtm, _ = self.retrieval_models.get_models(query_type)
+				transform_query = vectorizer.transform([query]) # Transform the query to maintain consistency (eg. use nltk stopwords, lowercase, etc.)
+				similarities = dot(transform_query, transpose(dtm))
+			x = array(similarities.toarray()[0]) # Secondary_index of similarities as np array
+			z = where(x == 0)[0].tolist() # The documents that didn't match with tfidf
+			article_ids = argsort(x)[-top_k:][::-1] # Most similar article ids at the end -> get the last top_k using [-top_k] -> reverse the order using [::-1]
+			# print(where(x == 0.0)[0].tolist())
+			total_documents_size, nonmatching_documents_size = len(x), len(z)
+			article_details = self.get_article_details(article_ids, subdf=subdf)
 		else:
-			vectorizer, dtm, _ = self.retrieval_models.get_models(query_type)
-			transform_query = vectorizer.transform([query]) # Transform the query to maintain consistency (eg. use nltk stopwords, lowercase, etc.)
-			similarities = dot(transform_query, transpose(dtm))
-		x = array(similarities.toarray()[0]) # secondary_index of similarities as np array
-		article_ids = argsort(x)[-top_k:][::-1] # most similar at the end -> get the last top_k using [-top_k] -> reverse the order using [::-1]
-		article_details = self.get_article_details(article_ids, subdf=subdf)
-		return article_details
+			article_details = self.get_article_details(range(top_k))
+			total_documents_size = self.retrieval_models.dataframe.shape[0]
+			nonmatching_documents_size = total_documents_size
+		processing_info = {
+			"articles": article_details,
+			"total_documents_size": total_documents_size,
+			"nonmatching_documents_size": nonmatching_documents_size
+		}
+		return processing_info
 
 	def search_top_k_secondary_index(self, query, query_type="content", top_k=5):
 		"""Search for the top k documents using the secondary index (which points to a list of cluster indexes which then point to a subset of articles) and TF-IDF on the subset of articles
@@ -117,35 +133,44 @@ class ArticleFetcher():
 				top_k (int, optional): Top k documents that should be returned. Defaults to 5.
 
 		Returns:
-				list(dict): Article details sorted by most similar to least similar.
+				dict:
+					article_details (list(dict)): Article details sorted by most similar to least similar.
+					total_documents_size (int): Total number of documents searched
+					nonmatching_documents_size (int): Total number of documents that are not matched to the query at all
 		"""
 		query = preprocess_string(query, remove_punc=True)
-		secondary_index = self.title_secondary_index if query_type == "title" else self.content_secondary_index
-		cluster_indexes = secondary_index.get(query)
-		vectorizer, _, kmeans_model = self.retrieval_models.get_models(query_type)
-		if cluster_indexes is None:
-			transform_query = vectorizer.transform([query])
-			cluster_indexes = kmeans_model.predict(transform_query).tolist()
-		if len(cluster_indexes) == 1:
-			article_ids = where(kmeans_model.labels_ == cluster_indexes[0])[0].tolist()
+		if query != "":
+			secondary_index = self.title_secondary_index if query_type == "title" else self.content_secondary_index
+			cluster_indexes = secondary_index.get(query)
+			vectorizer, _, kmeans_model = self.retrieval_models.get_models(query_type)
+			if cluster_indexes is None:
+				transform_query = vectorizer.transform([query])
+				cluster_indexes = kmeans_model.predict(transform_query).tolist()
+			if len(cluster_indexes) == 1:
+				article_ids = where(kmeans_model.labels_ == cluster_indexes[0])[0].tolist()
+			else:
+				article_ids = set() # the order of documents is not significant in sets which is why the order can be a bit different. the order for the purpose of evaluating similarities is not relevant
+				for cluster_index in cluster_indexes:
+					cluster_article_ids = where(kmeans_model.labels_ == cluster_index)[0].tolist()
+					article_ids.update(cluster_article_ids)
+			# problem is the articles are ordered based on when they're inserted, so we'll use TF-IDF again, but with subset of articles that are clustered based on the labels. If the subset of article ids is the same as the number of records, i.e the query is predicted to be a part of all clusters (too generic), then just use the same method as it were TF-IDF
+			if len(article_ids) == self.retrieval_models.dataframe.shape[0]:
+				processing_info = self.search_top_k_tfidf(query, query_type, top_k)
+			else:
+				subdf = self.retrieval_models.dataframe.iloc[list(article_ids)]
+				# Use a generic TF-IDF vectorizer which doesn't have any limiters
+				column_label = "cleaned_title" if query_type == "title" else "cleaned_content"
+				generic_tfidf_vectorizer = TfidfVectorizer(
+					stop_words=nltk.corpus.stopwords.words("english"), # Use the NLTKs stopwords
+					lowercase=True, use_idf=True, smooth_idf=True
+				)
+				# having to recreate the document term matrix every time makes the secondary index much slower since we still need rank based on the subset of articles
+				document_term_matrix = create_document_term_matrix(generic_tfidf_vectorizer, subdf[column_label])
+				# search using the same search_top_k_tfidf method
+				processing_info = self.search_top_k_tfidf(query, query_type, top_k, generic_tfidf_vectorizer, document_term_matrix, subdf)
 		else:
-			article_ids = set() # the order of documents is not significant in sets which is why the order can be a bit different. the order for the purpose of evaluating similarities is not relevant
-			for cluster_index in cluster_indexes:
-				cluster_article_ids = where(kmeans_model.labels_ == cluster_index)[0].tolist()
-				article_ids.update(cluster_article_ids)
-		# problem is the articles are ordered based on when they're inserted, so we'll use TF-IDF again, but with subset of articles that are clustered based on the labels
-		subdf = self.retrieval_models.dataframe.iloc[list(article_ids)]
-		# Use a generic TF-IDF vectorizer which doesn't have any limiters
-		column_label = "cleaned_title" if query_type == "title" else "cleaned_content"
-		generic_tfidf_vectorizer = TfidfVectorizer(
-			stop_words=nltk.corpus.stopwords.words("english"), # Use the NLTKs stopwords
-			lowercase=True, use_idf=True, smooth_idf=True
-		)
-		# having to recreate the document term matrix every time makes the secondary index much slower since we still need rank based on the subset of articles
-		document_term_matrix = create_document_term_matrix(generic_tfidf_vectorizer, subdf[column_label])
-		# search using the same search_top_k_tfidf method
-		article_details = self.search_top_k_tfidf(query, query_type, top_k, generic_tfidf_vectorizer, document_term_matrix, subdf)
-		return article_details
+			processing_info = self.search_top_k_tfidf(query, query_type, top_k)
+		return processing_info
 
 	def get_article_details(self, article_ids, subdf=None):
 		"""Creates a list of article objects with relevant details
@@ -175,16 +200,16 @@ class ArticleFetcher():
 		vectorizer, _, kmeans_model = self.retrieval_models.get_models(query_type)
 		terms = vectorizer.get_feature_names()
 		centers = kmeans_model.cluster_centers_.argsort()[:, ::-1]
-		word_lists = [[terms[j] for j in centers[i, :n]] for i in range(NUM_CLUSTERS)] # get the closest n terms to the center of each cluster
+		bags_of_words = [[terms[j] for j in centers[i, :n]] for i in range(NUM_CLUSTERS)] # get the closest n terms to the center of each cluster
 		secondary_index = {}
 		# The idea is that the "secondary index" has the words which points to a cluster index which points to a subset of articles
-		for cluster_index, word_list in enumerate(word_lists):
-			for word_position, word in enumerate(word_list):
+		for cluster_index, bag_of_words in enumerate(bags_of_words):
+			for word in bag_of_words:
 				if word in secondary_index:
 					secondary_index[word].append(cluster_index)
 				else:
 					secondary_index[word] = [cluster_index]
-		return word_lists, secondary_index
+		return bags_of_words, secondary_index
 
 def create_document_term_matrix(tfidf_vectorizer, articles_info):
 	document_term_matrix = tfidf_vectorizer.fit_transform(articles_info)
@@ -193,7 +218,6 @@ def create_document_term_matrix(tfidf_vectorizer, articles_info):
 def create_df(path=None):
 	articles_path = ARTICLES_PATH if path is None else path
 	df = read_csv(articles_path, encoding="utf-8").reset_index()
-	# df.astype('str')
 	df = df.filter(items=["id", "title", "publication", "author", "date", "content"])
 	# df.drop(labels=["url", "year", "month", "Unnamed: 0"], inplace=True, axis=1)
 	return df

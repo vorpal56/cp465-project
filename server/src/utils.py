@@ -37,10 +37,12 @@ def time_call(calling_function):
 		return response_obj
 	return wrapper
 
-def create_response(article_details, end_time):
+def create_response(results, end_time):
 	obj = {
 		"time": end_time,
-		"articles": article_details
+		"total_documents_size": results.get("total_documents_size"),
+		"nonmatching_documents_size": results.get("nonmatching_documents_size"),
+		"articles": results.get("articles")
 	}
 	return json.dumps(obj)
 

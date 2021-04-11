@@ -1,7 +1,7 @@
 <div class="search-grid">
 	<mat-form-field id="search-field">
 		<mat-label>Search Articles</mat-label>
-		<input matInput type="text" [(ngModel)]="searchText" placeholder="eg. business, donald trump, hillary clinton">
+		<input matInput type="text" [(ngModel)]="searchText" placeholder="eg. business, university, republican, facebook">
 		<button mat-button *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="searchText=''">
 			<mat-icon>close</mat-icon>
 		</button>

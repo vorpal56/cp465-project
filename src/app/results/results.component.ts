@@ -16,7 +16,7 @@ export class ResultsComponent implements OnInit {
 	partialContent(content: string) {
 		return content.slice(0, 50) + "..."
 	}
-	retrievalString(time: number) {
-		return `Retrieval time: ${time}s`
+	retrievalString(time: number, totalDocuments: number, mismatchedDocuments: number) {
+		return `${totalDocuments} total articles. ${totalDocuments-mismatchedDocuments} similar results (${time}s)`
 	}
 }

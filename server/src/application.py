@@ -21,7 +21,6 @@ def get_tfidf_documents():
 		article_objects = article_fetcher.search_top_k_tfidf(query, query_type=query_type, top_k=int(quantity))
 	else:
 		article_objects = article_fetcher.search_top_k_tfidf(query, query_type=query_type)
-
 	return article_objects
 
 @application.route("/api/documents-si", methods=["GET"])
