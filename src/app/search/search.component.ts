@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
@@ -11,8 +11,14 @@ import { shareReplay } from 'rxjs/operators';
 export class SearchComponent implements OnInit {
 
   constructor(private http: HttpClient) { }
+	ngOnInit(): void {
+
+	}
 	searchText: string = "";
 	searchQuantity: number = 5;
+	MIN_SEARCH_QUANTITY: number = 1;
+	MAX_SEARCH_QUANTITY: number = 100;
+
 	tfidfResults$: Observable<any>;
 	secondaryIndexResults$: Observable<any>;
 
@@ -23,9 +29,9 @@ export class SearchComponent implements OnInit {
 	searchType: string = this.searchTypes[0]["value"];
 	@Output("results") searchResultsChange = new EventEmitter<any>();
   getTopKResults() {
-		if (this.searchText != "" && this.searchText != undefined && this.searchText != null) {
-			let quantityParam = this.searchQuantity == null ? `n=5` : `n=${this.searchQuantity}`
-			let queryParams = [`q=${this.searchText}`, `t=${this.searchType}`, quantityParam];
+		if (this.searchText != "" && this.searchText != undefined && this.searchText != null
+		&& !this.boundError()) {
+			let queryParams = [`q=${this.searchText}`, `t=${this.searchType}`, `n=${this.searchQuantity}`];
 			let queryString = queryParams.join("&");
 			this.getTopKTfidf(queryString);
 			this.getTopKSecondaryIndex(queryString);
@@ -50,8 +56,11 @@ export class SearchComponent implements OnInit {
 		)
 		return;
 	}
-	ngOnInit(): void {
-
+	boundError() {
+		return this.searchQuantity == null || this.searchQuantity == undefined || this.searchQuantity < this.MIN_SEARCH_QUANTITY || this.searchQuantity > this.MAX_SEARCH_QUANTITY
 	}
-
+	@HostListener('document:keydown', ['$event'])
+	handleEnter(event:KeyboardEvent) {
+		if (event.key == "Enter") { this.getTopKResults() }
+	}
 }

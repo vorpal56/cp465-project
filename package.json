@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "serve": "ng serve --proxy-config ./proxy.json",
+		"py-dev-cr": "cd server/ && python src/article_processing.py && python src/application.py",
 		"py-dev-u" : "cd server/ && python src/article_processing.py",
     "py-dev": "cd server/ && python src/application.py",
     "build": "ng build",

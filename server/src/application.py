@@ -8,12 +8,23 @@ application.jinja_env.trim_blocks = True
 application.jinja_env.lstrip_blocks = True
 
 retrieval_models = RetrievalModels()
-retrieval_models.load_set_models()
+retrieval_models.load_set_models() # Load and set the preprocessed models
 article_fetcher = ArticleFetcher(retrieval_models)
 
 @application.route("/api/documents-tfidf", methods=["GET"])
 @time_call
 def get_tfidf_documents():
+	"""API endpoint for searching documents only by TF-IDF method
+
+	Returns:
+		{
+			end_time: float,
+			total_documents_size: int,
+			nonmatching_documents_size: int,
+			articles: list(dict)
+		}
+		since it's wrapped by time_call decorator (which calls create_response)
+	"""
 	query = request.args.get("q")
 	quantity = request.args.get("n")
 	query_type = request.args.get("t")
@@ -26,6 +37,17 @@ def get_tfidf_documents():
 @application.route("/api/documents-si", methods=["GET"])
 @time_call
 def get_secondary_index_documents():
+	"""API endpoint for searching documents using the secondary index method + TF-IDF
+
+	Returns:
+		{
+			end_time: float,
+			total_documents_size: int,
+			nonmatching_documents_size: int,
+			articles: list(dict)
+		}
+		since it's wrapped by time_call decorator (which calls create_response)
+	"""
 	query = request.args.get("q")
 	quantity = request.args.get("n")
 	query_type = request.args.get("t")

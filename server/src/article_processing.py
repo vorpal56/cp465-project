@@ -20,8 +20,6 @@ CONTENT_KMEANS_MODEL_PATH = os.path.join(MODELS_PATH, "content_kmeans_model.pkl"
 TITLE_KMEANS_MODEL_PATH = os.path.join(MODELS_PATH, "title_kmeans_model.pkl")
 
 class RetrievalModels:
-	MAX_N_CLUSTER_TERMS = 20 # The higher the number, the higher the probability that the same terms will appear in multiple clusters
-
 	def __init__(self):
 		return
 
@@ -75,6 +73,8 @@ class RetrievalModels:
 		return self.content_tfidf_vectorizer, self.content_document_term_matrix, self.content_kmeans_model
 
 class ArticleFetcher():
+	MIN_TOP_K = 1
+
 	def __init__(self, retrieval_models):
 		self.retrieval_models = retrieval_models
 		bags_of_words, self.content_secondary_index = self.get_top_n_cluster_terms()
@@ -100,6 +100,8 @@ class ArticleFetcher():
 					nonmatching_documents_size (int): Total number of documents that are not matched to the query at all
 		"""
 		query = preprocess_string(query, remove_punc=True)
+		if top_k < ArticleFetcher.MIN_TOP_K:
+			top_k = ArticleFetcher.MIN_TOP_K
 		if query != "":
 			if tfidf_vectorizer is not None and document_term_matrix is not None:
 				transform_query = tfidf_vectorizer.transform([query])
@@ -111,7 +113,6 @@ class ArticleFetcher():
 			x = array(similarities.toarray()[0]) # Secondary_index of similarities as np array
 			z = where(x == 0)[0].tolist() # The documents that didn't match with tfidf
 			article_ids = argsort(x)[-top_k:][::-1] # Most similar article ids at the end -> get the last top_k using [-top_k] -> reverse the order using [::-1]
-			# print(where(x == 0.0)[0].tolist())
 			total_documents_size, nonmatching_documents_size = len(x), len(z)
 			article_details = self.get_article_details(article_ids, subdf=subdf)
 		else:
@@ -177,7 +178,7 @@ class ArticleFetcher():
 
 		Args:
 				article_ids (list|set): Article IDs to get details about (sorted by most similar to least similar).
-				subdf (DataFrame, optional): The subset dataframe if any. Defaults to None.
+				subdf (DataFrame, optional): The subset dataframe of clustered articles if any. Defaults to None.
 
 		Returns:
 				list(dict): Article details sorted by most similar to least similar.
@@ -219,12 +220,11 @@ def create_df(path=None):
 	articles_path = ARTICLES_PATH if path is None else path
 	df = read_csv(articles_path, encoding="utf-8").reset_index()
 	df = df.filter(items=["id", "title", "publication", "author", "date", "content"])
-	# df.drop(labels=["url", "year", "month", "Unnamed: 0"], inplace=True, axis=1)
 	return df
 
 def start():
 	"""
-	Used to recreate the models if needed (eg. using a different dataset, different stopwords, different parameters, etc)
+	Used to create the models if needed (eg. using a different dataset, different stopwords, different parameters, etc)
 	"""
 
 	# Fresh start, read the articles, create the document term matrix, and dump the models for future use

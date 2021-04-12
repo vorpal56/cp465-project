@@ -17,11 +17,16 @@ import { AppComponent } from './app.component';
 import { SearchComponent } from './search/search.component';
 import { ResultsComponent } from './results/results.component';
 import { MatCardModule} from '@angular/material/card';
+import { MinValidatorDirective } from './directives/min-validator.directive';
+import { MaxValidatorDirective } from './directives/max-validator.directive';
+
 @NgModule({
   declarations: [
     AppComponent,
     SearchComponent,
-    ResultsComponent
+    ResultsComponent,
+    MinValidatorDirective,
+    MaxValidatorDirective
   ],
   imports: [
     BrowserModule,

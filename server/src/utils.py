@@ -30,16 +30,17 @@ def clean_punctuation(string):
 def time_call(calling_function):
 	@wraps(calling_function)
 	def wrapper(*args, **kwargs):
-		start_time = time.time()
-		results = calling_function(*args, **kwargs)
-		end_time = time.time() - start_time
-		response_obj = create_response(results, end_time)
+
+		start_time = time.time() # On request, start the timer
+		results = calling_function(*args, **kwargs) # Get the results from the respective function all
+		time_elapsed = time.time() - start_time # Stop the timer
+		response_obj = create_response(results, time_elapsed) # Construct the response obj which has the time elapsed
 		return response_obj
 	return wrapper
 
-def create_response(results, end_time):
+def create_response(results, time_elapsed):
 	obj = {
-		"time": end_time,
+		"time": time_elapsed,
 		"total_documents_size": results.get("total_documents_size"),
 		"nonmatching_documents_size": results.get("nonmatching_documents_size"),
 		"articles": results.get("articles")
